@@ -47,7 +47,35 @@ main:
 	
 	move $t0, $s0
 	li $v0, 0			# $v0=0, the number of pairs 
-	j is_valid
+	jal is_valid
+	
+	move $t0, $s0		# $t0=stringocta, 
+	move $t1, $s1		# $t1=NUM
+	move $t2, $s3 		# $t2=num of pairs
+	li $t3, 10			# $t3=10
+	jal convert
+	
+	printString printNUM
+	move $t0, $s1
+	li $t2, 0
+	jal print
+	
+	move $t0, $s1		# $t0=NUM
+	move $t1, $s2 		# $t1=sortarray
+	li $t3, 0 		
+	jal copy_array
+	
+	move $t0, $s2 		# $t0=sortarray
+	li $t1, 0			# $t1=i
+	li $t2, 0			# $t2=j
+	jal sort 
+	
+	li $t2, 0
+	move $t0, $s2
+	printString printSortarray
+	jal print
+	
+	j Exit
 	
 is_valid: # checks if input is legal. if legal returns in $vo=number of pairs in stringocta. if not $vo=0.	
 	lbu $t1, 0($t0)				# load $t0 into $t1
@@ -74,68 +102,51 @@ exit_is_valid:
 	move $a0, $s3
 	li $v0, 1
 	syscall	
-	j convert
+	jr $ra
 	
-convert: # convert pairs into NUM in decimal value
-	move $t0, $s0		# $t0=stringocta, 
-	move $t1, $s1		# $t1=NUM
-	move $t2, $s3 		# $t2=num of pairs
-	li $t3, 10			# $t3=10
-	j pairIntoDec
 	
-pairIntoDec:	
-	lbu $t4, 0($t0)		# $t4=current char value
-	subiu $t4, $t4, 48	# $t4-=48
-	mul $t5, $t4, $t3	# $t5=$t4*10
-	addiu $t0, $t0, 1 	# $t0=next char
-	lbu $t4, 0($t0)		# $t4=current char value
-	subiu $t4, $t4, 48	# $t4-=48
-	addu $t6, $t5, $t4	# $t6=$t5+$t4
-	addiu $t0, $t0, 2 	# $t0=next next  char
-	sb $t6, 0($t1)		# NUM[$a3-$t3]=$t6
-	addiu $t1, $t1, 1
-	subiu $t2, $t2, 1	# $t3-=1
-	beqz $t2, print		# if $t3=0, then => go to print
-	j pairIntoDec
+convert: # convert pairs into NUM in decimal value	
+	lbu $t4, 0($t0)			# $t4=current char value
+	subiu $t4, $t4, 48		# $t4-=48
+	mul $t5, $t4, $t3		# $t5=$t4*10
+	addiu $t0, $t0, 1 		# $t0=next char
+	lbu $t4, 0($t0)			# $t4=current char value
+	subiu $t4, $t4, 48		# $t4-=48
+	addu $t6, $t5, $t4		# $t6=$t5+$t4
+	addiu $t0, $t0, 2 		# $t0=next next  char
+	sb $t6, 0($t1)			# NUM[$a3-$t3]=$t6
+	addiu $t1, $t1, 1		# $t1+=1
+	subiu $t2, $t2, 1		# $t2-=1
+	bgt $t2, $zero, convert	# if $t2>0, then => go to convert
+	jr $ra
 
-print: 
-	printString printNUM
-	move $t0, $s1
-	li $t2, 0
-	j printArray
 
- printArray: 
+print:
 	lbu $t1, 0($t0)
 	printInt $t1
 	printString printcoma
 	addiu $t2, $t2, 1
 	addiu $t0, $t0, 1
-	bne $t2, $s3, printArray
-	j copy_array
+	bne $t2, $s3, print
+	jr $ra
+			
 	
 copy_array:
-	move $t0, $s1		# $t0=NUM
-	move $t1, $s2 		# $t1=sortarray
-	li $t3, 0 		
-loop:
 	lbu $t4, 0($t0)
 	sb $t4, 0($t1)
 	addiu $t0, $t0, 1
 	addiu $t1, $t1, 1
 	addiu $t3, $t3, 1
-	beq $t3, $s3, sort
-	j loop
+	blt $t3, $s3, copy_array
+	jr $ra
 	
 
-bubble_sort: # iloop:
+sort: # iloop:
 	addiu $t1, $t1, 1	# i++
 	move $t2, $t1		# j=i		
 	blt $t1, $s3, jloop
-	li $t2, 0
-	move $t0, $s2
-	printString printSortarray
-	j printSortedArray
-		
+	jr $ra
+			
 swap:
 	subiu $t0, $t0, 1
 	sb $a1, 0($t0)
@@ -143,32 +154,15 @@ swap:
 	sb $a0, 0($t0)
 	
 jloop:		
-	addiu $t2, $t2, 1			# j++
-	beq $t2, $s3, bubble_sort		# if j==n
+	addiu $t2, $t2, 1		# j++
+	beq $t2, $s3, sort		# if j==n
 	lbu $a0, 0($t0)
 	addiu $t0, $t0, 1
 	lbu $a1, 0($t0)
 	bgt  $a0, $a1, swap
 	j jloop
-		
-		
-sort:
-	move $t0, $s2 		# $t0=sortarray
-	li $t1, 0			# $t1=i
-	li $t2, 0			# $t2=j
-	#addiu $t4, $t4, 1
-	#bne $t4, $s3, bubble_sort
-	j bubble_sort
+				
 
-		
- printSortedArray:
-	lbu $t1, 0($t0)
-	printInt $t1
-	printString printcoma
-	addiu $t2, $t2, 1
-	addiu $t0, $t0, 1
-	bne $t2, $s3, printSortedArray
-		
 Exit:	
 	li $v0, 10	# Exit program
 	syscall
