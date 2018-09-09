@@ -4,8 +4,8 @@ messReq:			.asciiz "Enter max 10 pairs of integers between 00-77 seperated by $:
 notValid:			.asciiz "Wrong input/n"
 numOfPairs:		.asciiz "\nNumber of pairs: "
 printNUM: 		.asciiz "\nPrinting NUM array: "
-printSortarrayBefor:	.asciiz "\nsortarray before sorting: "
-printSortedArray:	.asciiz "The array after the sort is: "
+printSortarrayBefor:	.asciiz "\nSortarray before sorting: "
+printSortedArray:	.asciiz "\nThe array after the sort is: "
 printBye:			.asciiz "\nbye bye..."
 printcoma:		.asciiz ", "
 stringocta:		.byte 0:31
@@ -66,7 +66,7 @@ main:
 	li $t2, 0			# $t2=counter
 	jal print
 	
-	move $t0, $s2 		# $t0=sortarray
+	#move $t0, $s2 		# $t0=sortarray
 	li $t1, 0			# $t1=i, $t2=j
 	jal sort 
 	
@@ -143,8 +143,9 @@ copy_array:
 	
 
 sort: 						# main bubble sort loop
-	addiu $t1, $t1, 1		# i++
-	move $t2, $t1			# j=i		
+	move $t0, $s2 			# $t0=sortarray
+	move $t2, $t1			# j=i	
+	addiu $t1, $t1, 1		# i++	
 	blt $t1, $s3, sort_loop
 	jr $ra
 			
